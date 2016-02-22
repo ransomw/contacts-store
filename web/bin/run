@@ -1,0 +1,38 @@
+// -*-js2-*-
+/*global require, process, __dirname */
+
+var path = require('path');
+
+const app = require('../core');
+
+const argv = require('yargs').options({
+  'c': {
+    alias: 'cts',
+    desc: "continuous client build",
+    type: 'boolean'
+  },
+  'p': {
+    alias: 'port',
+    desc: "server http port number",
+    type: 'number'
+  }
+}).argv;
+
+
+const CLIENT_BUILD_DIR = path.join(
+  __dirname, '..', 'build', 'client');
+
+const port = argv.port || process.env.PORT;
+
+Promise.resolve().then(function () {
+  const opts = {};
+  opts.cts = argv.cts || false;
+  return app.build_client(CLIENT_BUILD_DIR, opts);
+}).then(function () {
+  console.log("client build finished");
+  return app.run_server(port, CLIENT_BUILD_DIR);
+}).then(function () {
+  console.log("server running on port " + port);
+}).catch(function (err) {
+  console.log("run error:\n" + err.toString());
+});

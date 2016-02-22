@@ -1,0 +1,10 @@
+// -*-js2-*-
+/*global require */
+
+const test = require('../test');
+
+Promise.resolve().then(function () {
+  return test.run_tests();
+}).catch(function (err) {
+  console.log("test error:\n" + err.toString());
+});
