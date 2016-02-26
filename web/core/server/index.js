@@ -16,9 +16,10 @@ const make_app = function (client_build_dir) {
   app.use(mount('/api', api.make_app()));
 
   app.use(function* (next) {
-    // ??? why does this print twice?
-    // console.log("hit default route");
-    this.redirect('/index');
+    // this.url.match(/^\/api/)
+    if(this.url !== '/favicon.io') {
+      this.redirect('/index');
+    }
   });
 
   return app;

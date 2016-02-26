@@ -3,8 +3,18 @@
 
 const test = require('../test');
 
+const argv = require('yargs').options({
+  't': {
+    alias: 'type',
+    desc: "type of test",
+    type: 'string',
+    choices: ['unit', 'int', 'func']
+  }
+}).argv;
+
+
 Promise.resolve().then(function () {
-  return test.run_tests();
+  return test.run_tests(argv.type);
 }).catch(function (err) {
   console.log("test error:\n" + err.toString());
 });
