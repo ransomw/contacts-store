@@ -19,8 +19,17 @@ var Router = require('./router');
 var Application = Mn.Application.extend({
   onStart: function (opt_args) {
     var router = new Router({});
+    var curr_route;
     Bb.history.start({pushState: true});
-    // Bb.history.loadUrl('search/');
+    curr_route = Bb.history.getFragment();
+
+    console.log("curr_route");
+    console.log("'" + curr_route + "'");
+
+    if (curr_route === '' ) {
+      // trigger option equivalent to calling .loadUrl after .navigate
+      router.navigate('login/', {trigger: true});
+    }
   }
 });
 

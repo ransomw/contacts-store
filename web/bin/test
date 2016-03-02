@@ -9,12 +9,19 @@ const argv = require('yargs').options({
     desc: "type of test",
     type: 'string',
     choices: ['unit', 'int', 'func']
+  },
+  'd': {
+    alias: 'wd_impl',
+    desc: "webdriver implementation",
+    type: 'string',
+    choices: ['chromedriver', 'phantomjs'],
+    default: 'chromedriver'
   }
+
 }).argv;
 
-
 Promise.resolve().then(function () {
-  return test.run_tests(argv.type);
+  return test.run_tests(argv.type, argv.wd_impl);
 }).catch(function (err) {
   console.log("test error:\n" + err.toString());
 });

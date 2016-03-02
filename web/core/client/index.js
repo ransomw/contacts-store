@@ -17,7 +17,7 @@ const PATHS = Object.freeze({
   less_styles_main: path.join(__dirname, 'styles', 'main.less')
 });
 
-const URL_ROOT = 'index';
+const URL_ROOT = '/index';
 
 // util
 
