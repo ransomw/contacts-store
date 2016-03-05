@@ -90,8 +90,7 @@ const func_tests = function (t) {
          require('./home')(wd_client, dir_client_build));
   t.test("signup and login",
          require('./login')(wd_client, dir_client_build));
-  t.notOk(true, "CRUD tests unimplemented");
-  // t.test("CRUD", require('./crud'));
+  t.skip("CRUD", require('./crud'));
   t.end();
 };
 

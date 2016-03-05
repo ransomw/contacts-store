@@ -10,12 +10,13 @@ const koa = require('koa');
 const ui = require('./ui');
 const api = require('./api');
 
-const make_app = function (client_build_dir) {
+const make_app = function (client_build_dir, sqlite_path) {
   const app = koa();
+  const api_app = api.make_app(sqlite_path);
 
   app.use(mount('/index', ui.make_app(client_build_dir)));
 
-  app.use(mount('/api', api.make_app()));
+  app.use(mount('/api', api_app));
 
   app.use(function* (next) {
     // this.url.match(/^\/api/)
@@ -38,6 +39,15 @@ const make_app = function (client_build_dir) {
       });
     }
   });
+
+  if (app.init_db) {
+    throw new Error("init_db already defined");
+  }
+  app.init_db = api_app.init_db;
+  if (app.close_db) {
+    throw new Error("close_db already defined");
+  }
+  app.close_db = api_app.close_db;
 
   return app;
 };

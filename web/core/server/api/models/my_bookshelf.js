@@ -103,6 +103,7 @@ MyBookshelf.prototype.init_db = function () {
       ;
     }),
   ]);
+
 };
 
 var exports = {};

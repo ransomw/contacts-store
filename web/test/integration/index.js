@@ -9,7 +9,8 @@ const teardown = function (t) {
 };
 
 const tests = function (t) {
-  t.test("server", require('./server'));
+  t.skip("server", require('./server'));
+  t.test("models", require('./models'));
   t.end();
 };
 

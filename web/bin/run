@@ -6,6 +6,12 @@ var path = require('path');
 const app = require('../core');
 
 const argv = require('yargs').options({
+  'd': {
+    alias: 'sqlite_path',
+    desc: "sqlite database file path",
+    type: 'string',
+    default: path.join(__dirname, '..', 'db.sqlite')
+  },
   'c': {
     alias: 'cts',
     desc: "continuous client build",
@@ -39,7 +45,11 @@ Promise.resolve().then(function () {
     console.log("client build finished");
   });
 }).then(function () {
-  return app.run_server(port, CLIENT_BUILD_DIR);
+  return app.run_server(
+    port,
+    CLIENT_BUILD_DIR,
+    path.normalize(argv.sqlite_path) // absolute path
+  );
 }).then(function () {
   console.log("server running on port " + port);
 }).catch(function (err) {

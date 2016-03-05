@@ -3,6 +3,7 @@
 var fs = require('fs');
 var url = require('url');
 
+const _ = require('lodash');
 const tmp = require('tmp');
 const fse = require('fs-extra');
 const jsdom = require('jsdom');
@@ -19,16 +20,25 @@ var app_server;
 // webdriverio client
 var wd_client;
 var dir_client_build;
+var tmp_file_sqlite;
+var cb_close_db;
 
 const setup = function (t) {
+  tmp_file_sqlite = tmp.fileSync();
   Promise.resolve().then(function () {
-    return app.run_server(APP_PORT, dir_client_build);
-  }).then(function (new_server) {
+    return app.run_server(
+      APP_PORT, dir_client_build, tmp_file_sqlite.name);
+  }).then(function (run_server_ret) {
+    return _.at(run_server_ret, ['server', 'close_db']);
+  }).then(_.spread(function (new_server, close_db) {
+    t.ok(new_server, "got server instance");
+    t.equal(typeof close_db, 'function', "got close database callback");
+    cb_close_db = close_db;
     app_server = new_server;
     return wd_client.init();
-  }).then(function () {
+  })).then(function () {
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const teardown = function (t) {
@@ -45,8 +55,14 @@ const teardown = function (t) {
       });
     });
   }).then(function () {
+    return cb_close_db();
+  }).then(function (){
+    t.ok(true, "close database without error");
+    fs.closeSync(tmp_file_sqlite.fd);
+    fs.unlinkSync(tmp_file_sqlite.name);
+    t.ok(true, "remove sqlite file without error");
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const test_login_page_els = function (t) {
@@ -80,7 +96,7 @@ const test_login_page_els = function (t) {
     t.equal(el_form_button.text(), 'login', "button text");
     t.equal(el_a_signup.text(), 'signup', "signup link text");
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const test_signup_page_els = function (t) {
@@ -115,7 +131,7 @@ const test_signup_page_els = function (t) {
       "correct form inputs");
     t.equal(el_form_button.text(), 'signup', "button text");
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const test_login_redirect = function (t) {
@@ -126,7 +142,7 @@ const test_login_redirect = function (t) {
             "root url redirects to login");
     t.test("login page elements after redirect", test_login_page_els);
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const test_login_navigate = function (t) {
@@ -137,7 +153,7 @@ const test_login_navigate = function (t) {
             "url correct after navigate to login");
     t.test("login page elements after navigate", test_login_page_els);
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const test_signup_click = function (t) {

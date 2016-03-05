@@ -1,0 +1,27 @@
+// -*-js2-*-
+/*global require, __dirname */
+
+var path = require('path');
+
+const app = require('../core');
+
+const argv = require('yargs').options({
+  'd': {
+    alias: 'sqlite_path',
+    desc: "sqlite database file path",
+    type: 'string',
+    default: path.join(__dirname, '..', 'db.sqlite')
+  }
+}).argv;
+
+const sqlite_path = path.normalize(argv.sqlite_path);
+
+Promise.resolve().then(function () {
+  return app.init_db(sqlite_path);
+}).then(function () {
+  console.log("sqlite database initialized at '" +
+              sqlite_path + "'");
+}).catch(function (err) {
+  console.log("database init failed");
+  console.log(err);
+});

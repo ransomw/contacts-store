@@ -15,16 +15,23 @@ Mn.TemplateCache.prototype.loadTemplate = function (str_t, options){
 };
 
 var Router = require('./router');
+var User = require('./models')('/api').User;
 
 var Application = Mn.Application.extend({
   onStart: function (opt_args) {
     var router = new Router({});
     var curr_route;
+    var user = new User();
     Bb.history.start({pushState: true});
     curr_route = Bb.history.getFragment();
 
     console.log("curr_route");
     console.log("'" + curr_route + "'");
+
+    /*
+    console.log("getting user information");
+    user.fetch();
+     */
 
     if (curr_route === '' ) {
       // trigger option equivalent to calling .loadUrl after .navigate

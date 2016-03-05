@@ -3,18 +3,19 @@
 var fs = require('fs');
 
 const tmp = require('tmp');
-const nets = require('nets');
 
-const api = require('../../../../core/server/api/');
+const api = require('../../../core/server/api/');
 
 const APP_PORT = process.env.PORT || 5000;
 const API_URL = 'http://localhost:' + APP_PORT;
 
-var app_inst;
+const models = require('../../../core/client/app/models')(API_URL);
+
 var app_server;
 var tmp_file_sqlite;
+var app_inst;
 
-const setup = function (t) {
+const setup_server = function (t) {
   app_inst = api.make_app((tmp_file_sqlite = tmp.fileSync()).name);
   Promise.resolve().then(function () {
     return app_inst.init_db();
@@ -34,7 +35,12 @@ const setup = function (t) {
   }).catch(t.end);
 };
 
-const teardown = function (t) {
+const setup = function (t) {
+  t.test("setup server", setup_server);
+  t.end();
+};
+
+const teardown_server = function (t) {
   Promise.resolve().then(function () {
     return new Promise(function (resolve, reject) {
       app_server.close(function (err) {
@@ -56,23 +62,14 @@ const teardown = function (t) {
   }).catch(t.end);
 };
 
-const test_hello = function (t) {
-  var req_url = API_URL + '/hi';
-  nets({
-    url: req_url,
-    encoding: undefined,
-    json: true
-  }, function(err, resp, body) {
-    t.notOk(err, "hello world endpoint returns without error");
-    t.equal(body.msg, "hiya!", "hello endpoint says the right thing");
-    t.end();
-  });
+const teardown = function (t) {
+  t.test("teardown server", teardown_server);
+  t.end();
 };
 
-
 const tests = function (t) {
-  t.test("hello world", test_hello);
-  t.test("login", require('./login')(API_URL));
+  t.test("User", require('./user')(models.User));
+  t.skip("Contacts", require('./contacts'));
   t.end();
 };
 
