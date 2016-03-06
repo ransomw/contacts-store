@@ -23,7 +23,7 @@ const setup = function (t) {
     return my_bookshelf.init_db();
   }).then(function () {
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const teardown = function (t) {
@@ -33,7 +33,7 @@ const teardown = function (t) {
     fs.closeSync(tmp_file_sqlite.fd);
     fs.unlinkSync(tmp_file_sqlite.name);
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const tests = function (t) {

@@ -31,7 +31,7 @@ const test_create = function (t) {
             "new user model has id attr");
     user_id = new_user.id;
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const test_read_username = function (t) {
@@ -57,7 +57,7 @@ const test_read_username = function (t) {
       username: USERNAME
     }, "user.serialize() contains exactly desired information");
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const test_read_id = function (t) {
@@ -83,7 +83,7 @@ const test_read_id = function (t) {
       username: USERNAME
     }, "user.serialize() contains exactly desired information");
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const test_delete = function (t) {
@@ -111,7 +111,7 @@ const test_delete = function (t) {
   }).then(function (user) {
     t.equal(user, null, "user delete successful");
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const tests = function (t) {

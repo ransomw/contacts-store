@@ -38,7 +38,7 @@ const test_logged_out = function (t) {
     t.equal(resp.statusCode, 401, "gives 401 status code");
     t.notOk(body.secret, "secret not in response body");
     t.end();
-  })).catch(t.error);
+  })).catch(t.end);
 };
 
 const test_logged_in = function (t) {
@@ -46,7 +46,7 @@ const test_logged_in = function (t) {
     t.equal(resp.statusCode, 200, "gives 200 status code");
     t.equal(body.some_secret, "sssh!", "secret in response body");
     t.end();
-  })).catch(t.error);
+  })).catch(t.end);
 };
 
 const test_bad_pass = function (t) {

@@ -50,7 +50,7 @@ const setup_client = function (t) {
   }).then(function () {
     t.ok(true, "build_client returned without errors");
     t.end();
-  }).catch(t.error);
+  }).catch(t.end);
 };
 
 const make_setup = function (wd_impl) {
