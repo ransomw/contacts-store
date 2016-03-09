@@ -69,7 +69,8 @@ const teardown = function (t) {
 
 const tests = function (t) {
   t.test("User", require('./user')(models.User));
-  t.skip("Contacts", require('./contacts'));
+  t.test("Contacts", require('./contacts')(
+    models.User, models.Contacts));
   t.end();
 };
 

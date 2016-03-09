@@ -3,6 +3,14 @@
 var nets = require('nets');
 var Bb = require('backbone');
 
+function AjaxError(message, status_code) {
+  this.name = 'AjaxError';
+  this.message = message || 'Backbone.ajax error';
+  this.status_code = status_code;
+  this.stack = (new Error()).stack;
+}
+AjaxError.prototype = Object.create(Error.prototype);
+AjaxError.prototype.constructor = AjaxError;
 
 Bb.ajax = function (settings) {
   var success = settings.success || function (data, textStatus, xhr) { };
@@ -30,14 +38,19 @@ Bb.ajax = function (settings) {
       jar: true,
       json: json,
       encoding: undefined
-    }, function(err, resp, body) {
+    }, function(nets_err, resp, body) {
+      var ajax_err;
       var xhr_placeholder = {xhr_placeholder: true};
-      if (err) {
-        error(xhr_placeholder, null, err);
-        reject(err);
-      } else {
+      if (nets_err) {
+        error(xhr_placeholder, null, nets_err);
+        reject(nets_err);
+      } else if (resp.statusCode === 200) {
         success(body, null, xhr_placeholder);
         resolve(body);
+      } else {
+        ajax_err = new AjaxError(undefined, resp.statusCode);
+        error(xhr_placeholder, null, ajax_err);
+        reject(ajax_err);
       }
     });
   });

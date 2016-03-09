@@ -6,6 +6,11 @@ var make_user = function (url_base) {
   var User = base.Model.extend({
     url: function () {
       return url_base + '/user';
+    },
+    logout: function () {
+      return base.Model.prototype.save.call(this, {
+        logout: true
+      });
     }
   });
 

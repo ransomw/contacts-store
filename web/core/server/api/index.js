@@ -1,6 +1,7 @@
 /*global require, module
  */
 
+const _ = require('lodash');
 const koa = require('koa');
 const koa_router = require('koa-router');
 const koa_json = require('koa-json');
@@ -8,7 +9,6 @@ const bodyParser = require('koa-bodyparser');
 const session = require('koa-session');
 
 const MyBookshelf = require('./models').MyBookshelf;
-
 
 // login required middleware
 const mw_login_req = function* (next) {
@@ -20,11 +20,10 @@ const mw_login_req = function* (next) {
   this.body = {};
 };
 
-
 const make_app = function (sqlite_path) {
   const my_bookshelf = new MyBookshelf(sqlite_path);
   const User = my_bookshelf.models.User;
-
+  const Contact = my_bookshelf.models.Contact;
 
   const app = koa();
   const router = koa_router();
@@ -57,6 +56,51 @@ const make_app = function (sqlite_path) {
     // optional query-string param for pretty responses [none]
     // param:
   });
+
+  const signup = function () {
+    return function* (next) {
+      var user;
+      var new_user;
+      if (this.request.body.password_confirm !==
+          this.request.body.password) {
+        this.status = 400;
+        this.body = {msg: "passwords don't match"};
+        yield* next;
+        return;
+      }
+      user = new User({
+        username: this.request.body.username,
+        password: this.request.body.password
+      });
+      new_user = yield user.save();
+      if (!new_user) {
+        this.status = 500;
+        this.body = {msg: "user create failed at persistance layer"};
+        yield* next;
+        return;
+      }
+      this.session.user_id = new_user.id;
+      this.body = new_user.serialize();
+    };
+  };
+
+  const login = function () {
+    return function* (next) {
+      var user = yield User.where({username: this.request.body.username})
+        .fetch();
+      if (!user) {
+        this.status = 400;
+        this.body = {
+          msg: "unknown username",
+          data: this.request.body.username
+        };
+        yield* next;
+        return;
+      }
+      this.session.user_id = user.id;
+      this.body = user.serialize();
+    };
+  };
 
   router.get('/hi', function *(next) {
     this.body = {msg: "hiya!"};
@@ -98,65 +142,94 @@ const make_app = function (sqlite_path) {
     var user;
     var new_user;
     if (this.request.body.password_confirm) {
-      if (this.request.body.password_confirm !==
-          this.request.body.password) {
-        this.status = 400;
-        this.body = {msg: "passwords don't match"};
-        yield* next;
-        return;
-      }
-      user = new User({
-        username: this.request.body.username,
-        password: this.request.body.password
-      });
-      new_user = yield user.save();
-      if (!new_user) {
-        this.status = 500;
-        this.body = {msg: "user create failed at persistance layer"};
-        yield* next;
-        return;
-      }
-      this.session.user_id = new_user.id;
-      this.body = new_user.serialize();
-    } else {
-      this.status = 500;
-      this.body = {msg: "login unimplemented"};
+      yield signup();
+      yield next;
+      return;
     }
+    if (this.request.body.logout) {
+      this.session.user_id = undefined;
+      this.body = {};
+      yield next;
+      return;
+    }
+    yield login();
+    yield next;
   });
 
   router.get('/contacts', mw_login_req, function* (next) {
-    this.body = [];
+    var user = yield User.where({id: this.session.user_id}).fetch();
+    var contacts = yield user.hasMany(Contact).fetch();
+    this.body = contacts.map(function (contact) {
+      var contact_json = contact.serialize();
+      contact_json.id = contact.id;
+      return contact_json;
+    });
   });
 
   router.get('/contacts/:id', mw_login_req, function* (next) {
-
     console.log("contacts get got id");
     console.log(this.params.id);
-
-    this.body = {};
+    this.status = 500;
+    this.body = {msg: "individual contact read unimplemented"};
   });
 
   router.post('/contacts', mw_login_req, function* (next) {
-
-    console.log("contacts post");
-
-    this.body = this.request.body;
+    var contact;
+    var new_contact;
+    if (Array.isArray(this.request.body)) {
+      this.status = 400;
+      this.body = {msg: "bulk create unsupported"};
+      yield* next;
+      return;
+    }
+    contact = new Contact(_.merge(_.cloneDeep(this.request.body),
+                                  {user_id: this.session.user_id}));
+    new_contact = yield contact.save();
+    if (!new_contact) {
+      this.status = 500;
+      this.body = {msg: "contact create failed at persistance layer"};
+      yield* next;
+      return;
+    }
+    this.body = new_contact.serialize();
+    this.body.id = new_contact.id;
   });
 
   router.put('/contacts/:id', mw_login_req, function* (next) {
-
-    console.log("contacts put got id");
-    console.log(this.params.id);
-
-    this.body = this.request.body;
+    const contact = yield Contact.where({id: this.params.id}).fetch();
+    var saved_contact;
+    if (!contact) {
+      this.status = 500;
+      this.body = {msg: "couldn't find user model"};
+      return;
+    }
+    if (contact.get('user_id') !== this.session.user_id) {
+      this.status = 400;
+      this.body = {msg: "may not modify other users' contacts"};
+      return;
+    }
+    contact.set(this.request.body);
+    saved_contact = yield contact.save();
+    this.body = saved_contact.serialize();
+    this.body.id = saved_contact.id;
   });
 
   router.del('/contacts/:id', mw_login_req, function* (next) {
-
-    console.log("contacts del got id");
-    console.log(this.params.id);
-
-    this.body = this.request.body;
+    const contact = yield Contact.where({id: this.params.id}).fetch();
+    var destroyed_contact;
+    if (!contact) {
+      this.status = 500;
+      this.body = {msg: "couldn't find user model"};
+      return;
+    }
+    if (contact.get('user_id') !== this.session.user_id) {
+      this.status = 400;
+      this.body = {msg: "may not delete other users' contacts"};
+      return;
+    }
+    destroyed_contact = yield contact.destroy();
+    this.body = destroyed_contact.serialize();
+    this.body.id = destroyed_contact.id;
   });
 
   // todo: not for deploy
