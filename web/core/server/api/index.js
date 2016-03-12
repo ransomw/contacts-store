@@ -20,7 +20,8 @@ const mw_login_req = function* (next) {
   this.body = {};
 };
 
-const make_app = function (sqlite_path) {
+const make_app = function (sqlite_path, opt_args) {
+  const opts = opt_args || {};
   const my_bookshelf = new MyBookshelf(sqlite_path);
   const User = my_bookshelf.models.User;
   const Contact = my_bookshelf.models.Contact;
@@ -65,6 +66,11 @@ const make_app = function (sqlite_path) {
           this.request.body.password) {
         this.status = 400;
         this.body = {msg: "passwords don't match"};
+
+        console.log("signup with password mismatch: request.body, next");
+        console.log(this.request.body);
+        console.log(next);
+
         yield* next;
         return;
       }
@@ -148,7 +154,7 @@ const make_app = function (sqlite_path) {
     }
     if (this.request.body.logout) {
       this.session.user_id = undefined;
-      this.body = {};
+      this.body = {username: null};
       yield next;
       return;
     }
@@ -232,11 +238,16 @@ const make_app = function (sqlite_path) {
     this.body.id = destroyed_contact.id;
   });
 
+  // required for koa-session
   // todo: not for deploy
   app.keys = ['some secret'];
 
+  // ??? missing koa-session/koa-mount interop?
+  if (!opts.session_upstream) {
+    app.use(session(app));
+  }
+
   app
-    .use(session(app))
     .use(body_parser)
     .use(mw_json)
     .use(router.routes())

@@ -11,8 +11,13 @@ const jquery = require('jquery');
 
 const app = require('../../core');
 
+const TIMEOUT_LOAD = 10000;
+
 const APP_PORT = process.env.PORT || 5000;
 const APP_URL = 'http://localhost:' + APP_PORT;
+
+const USERNAME = 'alice';
+const PASSWORD = 'pass';
 
 // a node http server
 // https://nodejs.org/api/http.html#http_class_http_server
@@ -23,9 +28,20 @@ var dir_client_build;
 var tmp_file_sqlite;
 var cb_close_db;
 
+const dumb_timeout = function (ms_dur) {
+  return function () {
+    return new Promise(function (resolve, reject) {
+      setTimeout(resolve, ms_dur);
+    });
+  };
+};
+
 const setup = function (t) {
   tmp_file_sqlite = tmp.fileSync();
   Promise.resolve().then(function () {
+    return app.init_db(tmp_file_sqlite.name);
+  }).then(function () {
+    t.pass("initialized database");
     return app.run_server(
       APP_PORT, dir_client_build, tmp_file_sqlite.name);
   }).then(function (run_server_ret) {
@@ -134,6 +150,22 @@ const test_signup_page_els = function (t) {
   }).catch(t.end);
 };
 
+const test_signout_home_redirect = function (t) {
+  Promise.resolve().then(function () {
+    return wd_client.url(APP_URL + '/home/');
+  }).then(dumb_timeout(500)).then(function () {
+    t.pass("wd_client.url() w/o error");
+    return wd_client.getUrl();
+  }).then(function (str_url) {
+    t.equal(url.parse(str_url).path, '/login/',
+            "home url redirects to login");
+    return wd_client.getHTML('div#application');
+  }).then(function (str_html) {
+    t.pass("got div#application html");
+    t.end();
+  }).catch(t.end);
+};
+
 const test_login_redirect = function (t) {
   Promise.resolve().then(function () {
     return wd_client.url(APP_URL).getUrl();
@@ -167,7 +199,7 @@ const test_signup_click = function (t) {
     t.equal(url.parse(str_url).path, '/signup/',
             "url correct after signup click");
     t.test("signup page elements after click", test_signup_page_els);
-  });
+  }).catch(t.end);
 };
 
 const test_signup_navigate = function (t) {
@@ -177,14 +209,96 @@ const test_signup_navigate = function (t) {
     t.equal(url.parse(str_url).path, '/signup/',
             "url correct after signup navigate");
     t.test("signup page elements after navigate", test_signup_page_els);
-  });
+  }).catch(t.end);
+};
+
+const test_signup = function (t) {
+  const form_sel = '#view-content form';
+  const make_input_sel = function (input_name) {
+    return form_sel + ' input[name="' + input_name + '"]';
+  };
+  Promise.resolve().then(function () {
+    return wd_client.getUrl();
+  }).then(function (str_url) {
+    t.equal(url.parse(str_url).path, '/signup/',
+            "at signup page");
+    return wd_client.setValue(make_input_sel('username'), USERNAME);
+  }).then(function () {
+    return wd_client.setValue(make_input_sel('password'), PASSWORD);
+  }).then(function () {
+    return wd_client.setValue(
+      make_input_sel('password-confirm'), PASSWORD);
+  }).then(function () {
+    return wd_client.click(form_sel + ' button');
+  }).then(dumb_timeout(1000)).then(function () {
+    return wd_client.getUrl();
+  }).then(function (str_url) {
+    t.equal(url.parse(str_url).path, '/home/',
+            "redirect home");
+    t.end();
+  }).catch(t.end);
+};
+
+const test_nav_home = function (t) {
+  Promise.resolve().then(function () {
+    return wd_client.url(APP_URL + '/home/').getUrl();
+  }).then(function (str_url) {
+    t.equal(url.parse(str_url).path, '/home/',
+            "navigates to home url");
+    t.end();
+  }).catch(t.end);
+};
+
+const test_logout = function (t) {
+  Promise.resolve().then(function () {
+    return wd_client.click('nav a[href="/logout/"]').getUrl();
+  }).then(function (str_url) {
+    t.equal(url.parse(str_url).path, '/login/',
+            "redirect to login page after logout");
+    t.end();
+  }).catch(t.end);
+};
+
+const test_login = function (t) {
+  const form_sel = '#view-content form';
+  const make_input_sel = function (input_name) {
+    return form_sel + ' input[name="' + input_name + '"]';
+  };
+  Promise.resolve().then(function () {
+    return wd_client.getUrl();
+  }).then(function (str_url) {
+    t.equal(url.parse(str_url).path, '/login/',
+            "at login page");
+    return wd_client.setValue(make_input_sel('username'), USERNAME);
+  }).then(function () {
+    return wd_client.setValue(make_input_sel('password'), PASSWORD);
+  }).then(function () {
+    return wd_client.click(form_sel + ' button');
+  }).then(dumb_timeout(750)).then(function () {
+    return wd_client.getUrl();
+  }).then(function (str_url) {
+    t.equal(url.parse(str_url).path, '/home/',
+            "redirect home");
+    t.end();
+  }).catch(t.end);
 };
 
 const login_tests = function (t) {
-  t.test("redirect from root", test_login_redirect);
+  t.test("redirect from '/home' no signin", test_signout_home_redirect);
+
+  t.test("redirect from root no signin", test_login_redirect);
   t.test("navigate to /login/", test_login_navigate);
   t.test("click signup", test_signup_click);
   t.test("navigate to /signup/", test_signup_navigate);
+  t.test("signup", test_signup);
+  t.test("navigate home after signup", test_nav_home);
+  t.test("logout", test_logout);
+  t.test("redirect from '/home' after logout",
+         test_signout_home_redirect);
+  t.test("navigate to /login/", test_login_navigate);
+  t.test("login", test_login);
+  t.test("navigate home after login", test_nav_home);
+
   t.end();
 };
 

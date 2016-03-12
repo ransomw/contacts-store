@@ -25,6 +25,8 @@
     "jquery": "2.2.0",
     "underscore": "backbone.marionette dep",
     "underscore": "1.8.3",
+    "es6-promise": "required for phantomjs, in particular",
+    "es6-promise": "3.1.2",
     "browserify": "###frontend build",
     "browserify": "13.0.0",
     "watchify": "3.7.0",

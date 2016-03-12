@@ -6,20 +6,29 @@ var path = require('path');
 const mount = require('koa-mount');
 const send = require('koa-send');
 const koa = require('koa');
+const session = require('koa-session');
 
 const ui = require('./ui');
 const api = require('./api');
 
 const make_app = function (client_build_dir, sqlite_path) {
   const app = koa();
-  const api_app = api.make_app(sqlite_path);
+  const api_app = api.make_app(sqlite_path, {session_upstream: true});
+
+  // required for koa-session
+  // todo: not for deploy
+  app.keys = ['some secret'];
+
+  app.use(session(app));
 
   app.use(mount('/index', ui.make_app(client_build_dir)));
 
   app.use(mount('/api', api_app));
 
   app.use(function* (next) {
-    // this.url.match(/^\/api/)
+    if (this.url.match(/^\/api/)) {
+      return;
+    }
     if(this.url !== '/favicon.io') {
       yield send(this, 'index.html', {
         // Browser cache max-age in milliseconds. defaults to 0

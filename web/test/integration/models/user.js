@@ -20,11 +20,12 @@ const teardown = function (t) {
 const test_no_user = function (t) {
   Promise.resolve().then(function () {
     var user = new User();
-    return user.fetch();
-  }).then(function (fetch_data) {
-    t.notOk(fetch_data.username, "username falsy");
+    return Promise.all([user, user.fetch()]);
+  }).then(_.spread(function (user, fetch_data) {
+    t.notOk(user.get('username'), "user.get('username') falsy");
+    t.notOk(fetch_data.username, "fetch_data username falsy");
     t.end();
-  }).catch(t.end);
+  })).catch(t.end);
 };
 
 const test_create_invalid_username = function (t) {
@@ -59,11 +60,14 @@ const test_create = function (t) {
 const test_read = function (t) {
   Promise.resolve().then(function () {
     var user = new User();
-    return user.fetch();
-  }).then(function (fetch_data) {
-    t.equal(fetch_data.username, USERNAME, "got expected username");
+    return Promise.all([user, user.fetch()]);
+  }).then(_.spread(function (user, fetch_data) {
+    t.equal(user.get('username'), USERNAME,
+            "got expected username on model");
+    t.equal(fetch_data.username, USERNAME,
+            "got expected username in fetch data");
     t.end();
-  }).catch(t.end);
+  })).catch(t.end);
 };
 
 const test_logout = function (t) {
@@ -74,13 +78,15 @@ const test_logout = function (t) {
     t.equal(user.get('username'), USERNAME, "got expected username");
     t.equal(typeof user.logout, 'function',
             "user model has logout function");
-    return user.logout();
-  })).then(function (logout_res) {
-    var user = new User();
+    return Promise.all([user, user.logout()]);
+  })).then(_.spread(function (user, logout_res) {
+    var new_user_inst = new User();
     t.ok(true, "user logout return w/o error");
-    t.deepEqual(logout_res, {}, "logout resolved with empty object");
-    return user.fetch();
-  }).then(function (user) {
+    t.notOk(user.get('username'), "username falsy after logout");
+    t.deepEqual(logout_res, {username: null},
+                "logout resolved with object to null username");
+    return new_user_inst.fetch();
+  })).then(function (user) {
     t.notOk(user.username, "username falsy");
     t.end();
   }).catch(t.end);
