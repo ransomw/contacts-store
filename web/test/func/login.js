@@ -251,7 +251,9 @@ const test_nav_home = function (t) {
 
 const test_logout = function (t) {
   Promise.resolve().then(function () {
-    return wd_client.click('nav a[href="/logout/"]').getUrl();
+    return wd_client.click('nav a[href="/logout/"]');
+  }).then(dumb_timeout(500)).then(function () {
+    return wd_client.getUrl();
   }).then(function (str_url) {
     t.equal(url.parse(str_url).path, '/login/',
             "redirect to login page after logout");
