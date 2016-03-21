@@ -14,13 +14,16 @@ const tests = function (t) {
   t.end();
 };
 
-const tests_main = function (t) {
-  t.test("setup", setup);
-  t.test("tests", tests);
-  t.test("teardown", teardown);
-  t.end();
+const make_tests_main = function (client, app_url) {
+  // wd_client = client;
+  return function (t) {
+    t.test("setup", setup);
+    t.test("tests", tests);
+    t.test("teardown", teardown);
+    t.end();
+  };
 };
 
-var exports = tests_main;
+var exports = make_tests_main;
 
 module.exports = exports;

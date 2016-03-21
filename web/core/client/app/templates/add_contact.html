@@ -1,0 +1,31 @@
+<h3>add contact</h3>
+<form action="javascript:void(0);">
+  <div>
+    <label>name</label>
+    <input
+       type="text"
+       placeholder="name"
+       name="name"
+       ></input>
+  </div>
+
+  <div>
+    <label>phone</label>
+    <input
+       type="tel"
+       placeholder="phone"
+       name="phone"
+       pattern="<%- phone_pattern %>"
+       ></input>
+  </div>
+  <div>
+    <label>email</label>
+    <input
+       type="email"
+       placeholder="email"
+       name="email"
+       ></input>
+  </div>
+
+  <button>add</button>
+</form>

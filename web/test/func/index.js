@@ -19,6 +19,11 @@ var dir_client_build;
 // https://nodejs.org/api/child_process.html#child_process_class_childprocess
 var wd_proc;
 
+/* If tests end w/o exiting, the correct client (chrome/phantom) doesn't
+ * get used, or other webdriver weirdness appears, make certain there
+ * isn't a webdriver process already running before the test starts.
+ */
+
 const wd_client = webdriverio.remote({
   host: 'localhost',
   port: WD_PORT,
@@ -93,9 +98,10 @@ const teardown = function (t) {
 const func_tests = function (t) {
   t.skip("home page",
          require('./home')(wd_client, dir_client_build));
-  t.test("signup and login",
+  t.skip("signup and login",
          require('./login')(wd_client, dir_client_build));
-  t.skip("CRUD", require('./crud'));
+  t.test("CRUD",
+         require('./crud')(wd_client, dir_client_build));
   t.end();
 };
 

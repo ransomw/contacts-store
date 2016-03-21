@@ -11,12 +11,16 @@ var NavView = Mn.LayoutView.extend({
 
   ui: {
     a_home: 'a[href="/home/"]',
+    a_contacts: 'a[href="/contacts/"]',
+    a_add_contact: 'a[href="/add/"]',
     a_logout: 'a[href="/logout/"]',
     a_login: 'a[href="/login/"]'
   },
 
   triggers: {
     'click @ui.a_home': 'show:home',
+    'click @ui.a_contacts': 'show:contacts',
+    'click @ui.a_add_contact': 'show:addContact',
     'click @ui.a_logout': 'logout',
     'click @ui.a_login': 'show:login'
   },

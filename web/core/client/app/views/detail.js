@@ -3,18 +3,21 @@
 var Bb = require('backbone');
 var Mn = require('backbone.marionette');
 
-
-var DetailView = Mn.LayoutView.extend({
+var ContactDetailView = Mn.LayoutView.extend({
   template: require('../templates/detail.html'),
   tagName: 'div',
 
-  regions: {
-
+  templateHelpers: {
+    formatPhone: function (phone) {
+      return phone.replace(
+          /^(\d{3}) (\d{3}) (\d{4})$/,
+        '($1) $2-$3');
+    }
   },
 
   onShow: function () {
-    console.log("detail view onShow");
+    console.log("contact detail on show");
   }
 });
 
-module.exports = DetailView;
+module.exports = ContactDetailView;

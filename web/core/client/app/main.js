@@ -28,7 +28,9 @@ if (!Promise) {
 var _ = require('lodash');
 
 var Router = require('./router');
-var User = require('./models')('/api').User;
+
+var User = require('./browser_models').User;
+var Contacts = require('./browser_models').Contacts;
 
 var Application = Mn.Application.extend({
   onStart: function (opt_args) {
@@ -39,7 +41,13 @@ var Application = Mn.Application.extend({
     if (!opts.user) {
       throw new Error("missing user object");
     }
-    var router = new Router({user: opts.user});
+    if (!opts.contacts) {
+      throw new Error("missing contacts object");
+    }
+    var router = new Router({
+      user: opts.user,
+      contacts: opts.contacts
+    });
     var curr_route; // debug
     Bb.history.start({pushState: true});
     curr_route = Bb.history.getFragment();
@@ -60,12 +68,19 @@ console.log("starting frontend...");
 
 Promise.resolve().then(function () {
   var user = new User(); // singleton (consider enforcing w/ opt arg)
-  console.log("getting user information");
   return Promise.all([user, user.fetch()]);
-}).then(_.spread(function (user, res_fetch) {
-  console.log("fetched user information");
-  console.log(user);
-  app.start({user: user});
+}).then(_.spread(function (user) {
+  var contacts = new Contacts();
+  var promise_fetch_contacts = undefined;
+  if (user.get('username')) {
+    promise_fetch_contacts = contacts.fetch();
+  }
+  return Promise.all([user, contacts, promise_fetch_contacts]);
+})).then(_.spread(function (user, contacts) {
+  app.start({
+    user: user,
+    contacts: contacts
+  });
 })).catch(function (err) {
   console.log("startup error");
   console.log(err);

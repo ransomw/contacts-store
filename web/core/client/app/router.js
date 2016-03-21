@@ -8,18 +8,35 @@ var MainView = require('./views/main');
 
 var Controller = Mn.Object.extend({
   initialize: function () {
-    var main_view = new MainView({user: this.getOption('user')});
-
-    console.log("Controller.initialize");
-
+    var main_view = new MainView({
+      user: this.getOption('user'),
+      contacts: this.getOption('contacts')
+    });
     main_view.render();
     // call onShow directly since there's no region manager
     main_view.onShow();
     this.options.main_view = main_view;
+  },
 
-    if (!this.getOption('user')) {
-      throw new Error("missing 'user' option");
-    }
+  home: function () {
+    var main_view = this.getOption('main_view');
+    main_view.triggerMethod('show:home');
+  },
+
+  contacts: function () {
+    var main_view = this.getOption('main_view');
+    main_view.triggerMethod('show:contacts');
+  },
+
+  addContact: function () {
+    var main_view = this.getOption('main_view');
+    main_view.triggerMethod('show:addContact');
+  },
+
+  detail: function (str_contact_id) {
+    var main_view = this.getOption('main_view');
+    main_view.triggerMethod('show:detail',
+                            null, parseInt(str_contact_id));
   },
 
   signup: function () {
@@ -30,16 +47,6 @@ var Controller = Mn.Object.extend({
   login: function () {
     var main_view = this.getOption('main_view');
     main_view.triggerMethod('show:login');
-  },
-
-  home: function () {
-    var main_view = this.getOption('main_view');
-    main_view.triggerMethod('show:home');
-  },
-
-  detail: function () {
-    var main_view = this.getOption('main_view');
-    main_view.triggerMethod('show:detail');
   }
 });
 
@@ -52,7 +59,10 @@ var Router = Mn.AppRouter.extend({
 
   constructor: function (options) {
     var opts = options || {};
-    var controller = new Controller({user: opts.user});
+    var controller = new Controller({
+      user: opts.user,
+      contacts: opts.contacts
+    });
     Mn.AppRouter.prototype.constructor.call(
       this,
       // don't expose controller outside of the module, and
@@ -84,10 +94,12 @@ var Router = Mn.AppRouter.extend({
   },
 
   appRoutes: {
-    'signup/': 'signup',
-    'login/': 'login',
     'home/': 'home',
-    'detail/': 'detail'
+    'contacts/:id/': 'detail',
+    'contacts/': 'contacts',
+    'add/': 'addContact',
+    'signup/': 'signup',
+    'login/': 'login'
   }
 });
 
