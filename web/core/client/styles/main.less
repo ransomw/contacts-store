@@ -1,9 +1,29 @@
 @import (less) "normalize-3.0.3.css";
-@import "nav";
 @import "spin";
+
+body {
+  margin-bottom: 3rem;
+}
 
 h1 {
   text-align: center;
-  margin-top: 0;
-  margin-bottom: 0;
+  font-size: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+nav {
+  @import "nav";
+}
+
+section.form {
+  @import "form";
+}
+
+section.login {
+  @import "login";
+}
+
+section.contacts {
+  @import "contacts";
 }

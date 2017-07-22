@@ -1,13 +1,43 @@
-nav > ul {
-  width: 40%;
-  margin: auto;
-  list-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
+@import "common_vars";
+
+@media (min-width: @tablet-width) {
+  margin-left: 5rem;
+  margin-right: 5rem;
 }
 
-nav a {
+@media (max-width: @tablet-width) {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+ul {
+  list-style: none;
+
+  display: flex;
+  align-items: center;
+
+  @media (min-width: @mobile-width) {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
+  @media (max-width: @mobile-width) {
+    flex-direction: column;
+  }
+
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: @mobile-width) {
+  li {
+    margin-bottom: .5em;
+  }
+}
+
+a {
   text-decoration: none;
   color: inherit;
+  font-size: 1.75em;
+  font-weight: 300;
 }

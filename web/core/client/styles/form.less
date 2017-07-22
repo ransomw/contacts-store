@@ -1,0 +1,73 @@
+/* todo */
+/* @import "common_vars"; */
+
+@mobile-width: 550px;
+
+margin-bottom: .5rem;
+
+display: flex;
+justify-content: center;
+
+h3 {
+  font-size: 1.5rem;
+}
+
+form {
+
+  margin-left: 2rem;
+  margin-right: 2rem;
+
+  div {
+    margin-bottom: 1em;
+  }
+
+  label {
+    font-weight: 600;
+  }
+
+  button {
+    margin-left: 1em;
+    font-size: 1.25em;
+    border: 1px solid black;
+    padding: .5em;
+    border-radius: .5em;
+    background: lightblue;
+  }
+
+  button:hover {
+    cursor: pointer;
+    background-color: aqua;
+  }
+
+}
+
+form > div {
+  margin-bottom: 1em;
+  display: flex;
+
+  @media (min-width: @mobile-width) {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  @media (max-width: @mobile-width) {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: @mobile-width) {
+  form > div label {
+    margin-right: .5em;
+  }
+}
+
+@media (max-width: @mobile-width) {
+  form > div label {
+    margin-bottom: .1em;
+  }
+}
+
+
+form > div input {
+  flex-grow: 1;
+}

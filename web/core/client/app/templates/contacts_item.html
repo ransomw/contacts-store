@@ -1,3 +1,7 @@
-<a href="/contacts/<%= id %>/"><%- name %></a>
-<a href="mailto:<%= email %>"><%- email %></a>
-<a href="tel:<%= phone %>"><%- formatPhone(phone) %></a>
+<section class="contact">
+  <a href="/contacts/<%= id %>/"><%- name %></a>
+  &nbsp;&mdash;&nbsp;
+  <a href="mailto:<%= email %>"><%- email %></a>
+  &nbsp;&mdash;&nbsp;
+  <a href="tel:<%= phone %>"><%- formatPhone(phone) %></a>
+</section>

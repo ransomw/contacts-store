@@ -53,7 +53,7 @@ var LoginView = Mn.LayoutView.extend({
   },
 
   ui: {
-    signup: '.signup'
+    signup: 'a.signup'
   },
 
   triggers: {
